@@ -14,54 +14,69 @@
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n rooks placed such that none of them can attack each other
 
 window.findNRooksSolution = function(n) {
-  var solution = undefined; //fixme
-
-  console.log('Single solution for ' + n + ' rooks:', JSON.stringify(solution));
-  return solution;
+  var board = new Board({"n": n});
+  var index = 0;
+  while (index < n){
+    board.togglePiece(index, index);
+    index ++;
+  };
+  console.log('Single solution for ' + n + ' rooks:', JSON.stringify(board.rows()));
+  return board.rows();
 };
-
 
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
 window.countNRooksSolutions = function(n) {
-  var solutionCount = 0;
-  var solutions = {};
-  var board = new Board({"n": n});
-  var permutationChecker = function(piecesLeft) {
-    for(var row = 0; row < n; row++) {
-      for(var col = 0; col < n; col++) {
-        if (board.get(row)[col] === 0) {
-          board.togglePiece(row, col);
-          if(!board.hasAnyRooksConflicts()) {
-            if(piecesLeft - 1 === 0) {
-              //console.log(solutions)
-              if(solutions[JSON.stringify(board.rows())] === undefined) {
-                solutionCount += 1;
-                solutions[JSON.stringify(board.rows())] = true;
-              }
-            }
-            else {
-              permutationChecker(piecesLeft - 1);
-            }   
-          }
-          board.togglePiece(row, col);
-        }
-      }
-    }
-  };
-  permutationChecker(n);
-  // console.log('Number of solutions for ' + n + ' queens:', solutionCount);
-  return solutionCount;
+  var solution = 1;
+  while (n > 1){
+    solution = solution * n;
+    n --;
+  }
+  return solution
 };
 
 
 
 // return a matrix (an array of arrays) representing a single nxn chessboard, with n queens placed such that none of them can attack each other
 window.findNQueensSolution = function(n) {
-  var solution = undefined; //fixme
-
-  console.log('Single solution for ' + n + ' queens:', JSON.stringify(solution));
-  return solution;
+  var board = new Board({"n": n});
+  var rowsUsed = {};
+  var colsUsed = {};
+  var permutationChecker = function(piecesLeft) {
+    for(var row = 0; row < n; row++) {
+      if(rowsUsed[row] === true){
+        continue;
+      }
+      for(var col = 0; col < n; col++) {
+        if (colsUsed[col] === true){
+          continue;
+        }
+        if (board.get(row)[col] === 0) {
+          board.togglePiece(row, col);
+          rowsUsed[row] = true;
+          colsUsed[col] = true;
+          if(!board.hasAnyQueenConflictsOn(row, col)) {
+            if(piecesLeft - 1 === 0) {
+              console.log(board.rows())
+              return board.rows();
+            }
+            else {
+              var solution = permutationChecker(piecesLeft - 1);
+              console.log(solution)
+              if (solution !== false){
+                return solution
+              }
+            }
+          }
+          rowsUsed[row] = false;
+          colsUsed[col] = false;
+          board.togglePiece(row, col)   
+        }
+      }
+    }
+    return false;
+  }
+  return permutationChecker(n) || board.rows();
 };
 
 
@@ -73,11 +88,23 @@ window.countNQueensSolutions = function(n) {
   var solutionCount = 0;
   var alreadySeen = {};
   var board = new Board({"n": n});
+  var rowsUsed = {};
+  var colsUsed = {};
+  var majDiagUsed = {};
+  var minDiagUsed = {};
   var permutationChecker = function(piecesLeft) {
     for(var row = 0; row < n; row++) {
+      if(rowsUsed[row] === true){
+        continue;
+      }
       for(var col = 0; col < n; col++) {
+        if (colsUsed[col] === true){
+          continue;
+        }
         if (board.get(row)[col] === 0) {
           board.togglePiece(row, col);
+          rowsUsed[row] = true;
+          colsUsed[col] = true;
           if (alreadySeen[JSON.stringify(board.rows())] === undefined){
             if(!board.hasAnyQueenConflictsOn(row, col)) {
               if(piecesLeft - 1 === 0) {
@@ -89,6 +116,8 @@ window.countNQueensSolutions = function(n) {
             alreadySeen[JSON.stringify(board.rows())] = true;
             }
           }
+          rowsUsed[row] = false;
+          colsUsed[col] = false;
           board.togglePiece(row, col);
         }
       }
