@@ -24,9 +24,33 @@ window.findNRooksSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n rooks placed such that none of them can attack each other
 window.countNRooksSolutions = function(n) {
-  var solutionCount = undefined; //fixme
-
-  console.log('Number of solutions for ' + n + ' rooks:', solutionCount);
+  var solutionCount = 0;
+  var solutions = {};
+  var board = new Board({"n": n});
+  var permutationChecker = function(piecesLeft) {
+    for(var row = 0; row < n; row++) {
+      for(var col = 0; col < n; col++) {
+        if (board.get(row)[col] === 0) {
+          board.togglePiece(row, col);
+          if(!board.hasAnyRooksConflicts()) {
+            if(piecesLeft - 1 === 0) {
+              //console.log(solutions)
+              if(solutions[JSON.stringify(board.rows())] === undefined) {
+                solutionCount += 1;
+                solutions[JSON.stringify(board.rows())] = true;
+              }
+            }
+            else {
+              permutationChecker(piecesLeft - 1);
+            }   
+          }
+          board.togglePiece(row, col);
+        }
+      }
+    }
+  };
+  permutationChecker(n);
+  // console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
 };
 
@@ -43,8 +67,55 @@ window.findNQueensSolution = function(n) {
 
 // return the number of nxn chessboards that exist, with n queens placed such that none of them can attack each other
 window.countNQueensSolutions = function(n) {
-  var solutionCount = undefined; //fixme
-
-  console.log('Number of solutions for ' + n + ' queens:', solutionCount);
+  if (n === 0){
+    return 1
+  }
+  var solutionCount = 0;
+  var alreadySeen = {};
+  var board = new Board({"n": n});
+  var permutationChecker = function(piecesLeft) {
+    for(var row = 0; row < n; row++) {
+      for(var col = 0; col < n; col++) {
+        if (board.get(row)[col] === 0) {
+          board.togglePiece(row, col);
+          if (alreadySeen[JSON.stringify(board.rows())] === undefined){
+            if(!board.hasAnyQueenConflictsOn(row, col)) {
+              if(piecesLeft - 1 === 0) {
+                  solutionCount += 1;
+              }
+              else {
+                permutationChecker(piecesLeft - 1);
+              }   
+            alreadySeen[JSON.stringify(board.rows())] = true;
+            }
+          }
+          board.togglePiece(row, col);
+        }
+      }
+    }
+  };
+  permutationChecker(n);
+  // console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
-};
+};     
+
+/* w/in recursive:
+iterate over all spaces
+  if currentSpace is free
+    toggle currentSpace
+    if board is okay
+      if no more recursive calls left to be made
+         if solution is unique
+           stringify solution and add to object
+           increment solutionsCount
+      else
+          recursively call with one less piece to be placed
+    toggle currentSpace off
+
+    f(n) = O(g(n))
+    there exists some c and k such that for all n's > k, f(n) <= c(g(n))
+    1000n = O(n)
+    n^2 + n = O(n^2)
+    n^2 + 1000000000000n = O(n^2)
+    n^2(n^2) = n^4 = O(n^4)
+*/
